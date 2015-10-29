@@ -17,7 +17,7 @@ class RobustSurfaceSplitting():
         self.line_params = self.lineFitting.get_lineparameters()[0]  # [theta0, theta1] shape 2,1
         self.Q = 50  # Q is the number of points close to the splitting line
         self.number_iterations = 2
-        # self.fig = plt.figure()
+        #self.fig = plt.figure()
         # self.axis = self.fig.add_subplot(111, projection="3d")
 
     def __splitPointCloud(self):
@@ -59,9 +59,12 @@ class RobustSurfaceSplitting():
         QPoints = P[minimumQPoints]
         self.lineFitting = LineFitting(QPoints)
         self.line_params, error = self.lineFitting.get_lineparameters()
+        print 'count: ',count
         count = count - 1
+        self.number_iterations = count
         if count != 0:
             self.split()
+        
         return P1, P2, parameters_lin_surface, parameters_curved_surface, self.line_params
 
 
