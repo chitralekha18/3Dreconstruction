@@ -3,6 +3,8 @@ from plyfile import PlyData, PlyElement
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from RobustSurfaceFitting import QuadSurfFit
+from RobustSurfaceFitting import LinSurfFit
+from sklearn.neighbors import NearestNeighbors
 
 class Resampling(object):
     def __init__(self,point_cloud,color,projection_mat=None):
@@ -49,8 +51,7 @@ class Resampling(object):
         
         header  =  \
 '''ply
-format binary_little_endian 1.0
-comment VCGLIB generated
+format ascii 1.0
 '''
         header_mid = 'element vertex '+str(int(self.uniform_pointcloud.shape[1]))
         headerend = \
@@ -62,8 +63,6 @@ property uchar red
 property uchar green
 property uchar blue
 property uchar alpha
-element face 0
-property list uchar int vertex_indices
 end_header
 '''
         points = self.uniform_pointcloud
@@ -92,65 +91,107 @@ end_header
         plt.show()
         '''         
           
-    def do_resampling(self):
+    def do_resampling(self,fitplane = 0):
         ''' 
-        TODO: 
         1. Sample 2D points at regular intervals from the sampling region. Get the corresponding Z value from the curve params. i.e Get the corresponding 3D point (Done)
         2. Fill the empty space with default color (Done)
         3. Do linear interpolation for the point based on 4 nearest neighbour (although the paper instructs otherwise)
         '''
+        if fitplane:
+            param, points_without_outliers = LinSurfFit(self.point_cloud[0, :], self.point_cloud[1, :], self.point_cloud[2, :])
+            x =  points_without_outliers[:,0]
+            y = points_without_outliers[:,1]
+        else:
+            param, points_without_outliers = QuadSurfFit(self.point_cloud[0, :], self.point_cloud[1, :], self.point_cloud[2, :])
+            x =  points_without_outliers[:,3]
+            y = points_without_outliers[:,4]
        
-        param_curved_surface, points_without_outliers = QuadSurfFit(self.point_cloud[0, :], self.point_cloud[1, :], self.point_cloud[2, :])
-        
-        x =  points_without_outliers[:,3]
-        y = points_without_outliers[:,4]
-       
-        z =  points_without_outliers*param_curved_surface
+        z =  points_without_outliers*param
 		
-        resolution = 80
+        resolution = 150
         
         xpoints = np.linspace(float(min(x)),float(max(x)),resolution)
         ypoints = np.linspace(float(min(y)),float(max(y)),resolution)
         xv,yv = np.meshgrid(xpoints,ypoints)
-        a = param_curved_surface
-        zv = float(a[0])*xv**2 + float(a[1])*yv**2 + float(a[2])*xv*yv + float(a[3])*xv + float(a[4])*yv + float(a[5])
+        a = param
+        if fitplane:
+            zv =  float(a[0])*xv + float(a[1])*yv + float(a[2])
+        else:
+            zv = float(a[0])*xv**2 + float(a[1])*yv**2 + float(a[2])*xv*yv + float(a[3])*xv + float(a[4])*yv + float(a[5])
         flattenx = np.hstack(np.array(xv))
         flatteny = np.hstack(np.array(yv))
         flattenz = np.hstack(np.array(zv))
         self.uniform_pointcloud = np.vstack((flattenx,flatteny,flattenz))
         
+        '''
         #using default color filling
-        self.color_uniform_pointcloud = {tuple(self.uniform_pointcloud[:,i]): np.array([255,255,0]) for i in range(self.uniform_pointcloud.shape[1])} 
-        #print self.uniform_pointcloud.shape
-        #print self.point_cloud.shape
+        self.color_uniform_pointcloud = {tuple(self.uniform_pointcloud[:,i]): np.array([255,0,0,255]) for i in range(self.uniform_pointcloud.shape[1])} 
+        print self.uniform_pointcloud.shape
+        print self.point_cloud.shape
+        '''
         
-        # TO DO: code for nearest neighbour color filling here
+        #code for nearest neighbour color filling here
+        num_neighbours = 4
+        nbrs = NearestNeighbors(n_neighbors=num_neighbours, algorithm='ball_tree').fit(self.point_cloud.T)
+        distances, indices = nbrs.kneighbors(self.uniform_pointcloud.T)
+        #print indices.shape
+        for idx in range(indices.shape[0]):
+            #print 'index: ',idx
+            avg_color = np.zeros(4,dtype = int)
+            for i in indices[idx,:]:
+                color = self.color[tuple(self.point_cloud.T[i,:])]
+                #print color
+                avg_color += color
+                
+            self.color_uniform_pointcloud[ tuple(self.uniform_pointcloud[:,idx]) ] = avg_color/4
+            
+            
+class PLYLoader(object):
+    def __init__(self,filename):
+        self.plydata = PlyData.read(filename)
+        
+    def get_points(self):
+        x = (self.plydata['vertex']['x'])
+        y = (self.plydata['vertex']['y'])
+        z = (self.plydata['vertex']['z'])
+        return np.vstack((x,y,z))
+        
+    def get_colors(self):
+        red = (self.plydata['vertex']['red'])
+        green = (self.plydata['vertex']['green'])
+        blue = (self.plydata['vertex']['blue'])
+        alpha = (self.plydata['vertex']['alpha'])
+        return np.vstack((red,green,blue,alpha))
+        
+    def get_normals(self):
+        normal_x = (self.plydata['vertex']['nx'])
+        normal_y = (self.plydata['vertex']['ny'])
+        normal_z = (self.plydata['vertex']['nz'])
+        return np.vstack((normal_x,normal_y,normal_z))
         
 if __name__ == "__main__":
-        PLY_FILENAME = "frontalpoints_small.ply"
-        plydata = PlyData.read(PLY_FILENAME)
-        x = (plydata['vertex']['x'])
-        y = (plydata['vertex']['y'])
-        z = (plydata['vertex']['z'])
-        red = (plydata['vertex']['red'])
-        green = (plydata['vertex']['green'])
-        blue = (plydata['vertex']['blue'])
-        alpha = (plydata['vertex']['alpha'])
-        normal_x = (plydata['vertex']['nx'])
-        normal_y = (plydata['vertex']['ny'])
-        normal_z = (plydata['vertex']['nz'])
+        PLY_FILENAME = "./front-curved-surface/front-curved-surface.ply"
+        PLY_PlaneFile = './left-linear-surface/left-linear-surface.ply'
         
-        point_cloud = np.matrix(np.empty([len(x), 3])) # [x,y,z,1] constructing the point cloud in homogenous representation
-        point_cloud = np.vstack((x,y,z)) #Filling in with values, i follow column major order [ 3Dpoint1 3Dpoint2 3Dpoint3 ... ]
+        plyloader = PLYLoader(PLY_FILENAME)
+        
+        point_cloud = plyloader.get_points()  #Filling in with values, i follow column major order [ 3Dpoint1 3Dpoint2 3Dpoint3 ... ]
         
         print point_cloud[:,0].shape # [x y z 1] vector
-        color_matrix = np.vstack((red,green,blue,alpha)) # constructing the color matrix
+        color_matrix = plyloader.get_colors() # constructing the color matrix
         #print color_matrix
         #normal_matrix =  np.vstack((normal_x,normal_y,normal_z)) # constructing the normal matrix
         
         resamp_obj = Resampling(point_cloud,color_matrix)
 
         resamp_obj.do_resampling()
-        resamp_obj.write_pointsPLY('output.ply')
-        resamp_obj.plot_3D(resamp_obj.uniform_pointcloud)
-    
+        resamp_obj.write_pointsPLY('frontcurvedsurface_output.ply')
+        #resamp_obj.plot_3D(resamp_obj.uniform_pointcloud)
+        
+        #Now Construct Planer Surface
+        plyloader = PLYLoader(PLY_PlaneFile)
+        point_cloud = plyloader.get_points()
+        color_matrix = plyloader.get_colors()
+        resamp_obj = Resampling(point_cloud,color_matrix)
+        resamp_obj.do_resampling(fitplane=1)
+        resamp_obj.write_pointsPLY('leftlinearsurface_output.ply')
