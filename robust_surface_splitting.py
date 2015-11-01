@@ -1,10 +1,10 @@
 __author__ = 'abhinavkashyap'
 import numpy as np
 from line_fititng import LineFitting
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from RobustSurfaceFitting import LinSurfFit
 from RobustSurfaceFitting import QuadSurfFit
+from plyfile import PlyData
+
 class RobustSurfaceSplitting():
     def __init__(self, point_cloud, initial_line_points_file):
         """
@@ -17,7 +17,7 @@ class RobustSurfaceSplitting():
         self.line_params = self.lineFitting.get_lineparameters()[0]  # [theta0, theta1] shape 2,1
         self.Q = 50  # Q is the number of points close to the splitting line
         self.number_iterations = 2
-        #self.fig = plt.figure()
+        # self.fig = plt.figure()
         # self.axis = self.fig.add_subplot(111, projection="3d")
 
     def __splitPointCloud(self):
@@ -41,7 +41,7 @@ class RobustSurfaceSplitting():
         # Step 4: Find the subset of Points Q that have least distance
         # Step 5: Fit a line to this set of points. Repeat
         count = self.number_iterations
-        P1, P2 = self.__splitPointCloud() # P1 P2 contain the points that are split according to the sign
+        P1, P2 = self.__splitPointCloud()  # P1 P2 contain the points that are split according to the sign
         P1_array = np.array(P1)
         P2_array = np.array(P2)
         parameters_lin_surface, DLinear = LinSurfFit(P1_array[:, 0], P1_array[:, 1], P1_array[:, 2])
@@ -49,28 +49,31 @@ class RobustSurfaceSplitting():
         P = np.vstack((P1, P2))
         D = []
         for eachRow in P:
-            x = eachRow.item(0,0)
-            y = eachRow.item(0,1)
+            x = eachRow.item(0, 0)
+            y = eachRow.item(0, 1)
             S1xy = np.matrix([[x, y, 1]]) * parameters_lin_surface
-            S2xy = np.matrix([[x**2, y**2, x*y, x, y, 1]]) * parameters_curved_surface
-            D.append(np.abs(S1xy-S2xy).item(0,0))
+            S2xy = np.matrix([[x ** 2, y ** 2, x * y, x, y, 1]]) * parameters_curved_surface
+            D.append(np.abs(S1xy - S2xy).item(0, 0))
         D = np.array(D)
         minimumQPoints = np.argsort(D)[:50]
         QPoints = P[minimumQPoints]
         self.lineFitting = LineFitting(QPoints)
         self.line_params, error = self.lineFitting.get_lineparameters()
-        print 'count: ',count
+        print 'count: ', count
         count = count - 1
         self.number_iterations = count
         if count != 0:
             self.split()
-        
+
         return P1, P2, parameters_lin_surface, parameters_curved_surface, self.line_params
 
 
 if __name__ == "__main__":
-    left_linear_surface_points = np.genfromtxt("./left-linear-surface/left-linear-face.xyz")
-    front_curved_surface_points = np.genfromtxt("./front-curved-surface/front-curved-surface.xyz")
+    left_linear_surface_ply = PlyData.read('./left-linear-surface/left-linear-surface.ply')
+    front_curved_surface_ply = PlyData.read('./front-curved-surface/front-curved-surface.ply')
+    left_linear_surface_points = np.hstack((left_linear_surface_ply['vertex']['x'].reshape(-1,1), left_linear_surface_ply['vertex']['y'].reshape(-1, 1), left_linear_surface_ply['vertex']['z'].reshape(-1, 1)))
+    front_curved_surface_points = np.hstack((front_curved_surface_ply['vertex']['x'].reshape(-1,1), front_curved_surface_ply['vertex']['y'].reshape(-1,1), front_curved_surface_ply['vertex']['z'].reshape(-1,1)))
     cloud_points = np.vstack((left_linear_surface_points, front_curved_surface_points))
     robust_surface_splitting = RobustSurfaceSplitting(cloud_points, "./left-line1/line1-4.xyz")
-    robust_surface_splitting.split()
+    P1, P2, parameters_lin_surface, parameters_curved_surface, line_params = robust_surface_splitting.split()
+    print P1
