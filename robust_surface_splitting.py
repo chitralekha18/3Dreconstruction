@@ -4,6 +4,7 @@ from line_fititng import LineFitting
 from RobustSurfaceFitting import LinSurfFit
 from RobustSurfaceFitting import QuadSurfFit
 from plyfile import PlyData
+from utils import *
 
 class RobustSurfaceSplitting():
     def __init__(self, point_cloud, initial_line_points_file):
@@ -79,4 +80,15 @@ if __name__ == "__main__":
     cloud_points = np.vstack((left_linear_surface_points, front_curved_surface_points))
     robust_surface_splitting = RobustSurfaceSplitting(cloud_points, "./left-line1/line1-4.xyz")
     P1, P2, parameters_lin_surface, parameters_curved_surface, line_params = robust_surface_splitting.split()
-    print P1
+    p1_pickle = open('./surface_split_parameter_files/p1_pickle.txt', 'w')
+    p2_pickle = open('./surface_split_parameter_files/p2_pickle.txt', 'w')
+    param_lin_surface_pickle = open('./surface_split_parameter_files/lin_surface_pickle.txt', 'w')
+    parameters_curved_surface_pickle = open('./surface_split_parameter_files/curved_surface_pickle.txt', 'w')
+    final_split_line_pickle = open('./surface_split_parameter_files/final_line_pickle.txt', 'w')
+    pickledump(P1, p1_pickle)
+    pickledump(P2, p2_pickle)
+    pickledump(parameters_lin_surface, param_lin_surface_pickle)
+    pickledump(parameters_curved_surface,parameters_curved_surface_pickle)
+    pickledump(line_params, final_split_line_pickle)
+
+
