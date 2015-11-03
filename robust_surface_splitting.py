@@ -36,8 +36,8 @@ class RobustSurfaceSplitting():
         values = (np.hstack((x, ones)) * self.line_params) - y
         # Return two sets of points based on the sign
         values = np.array(values).ravel()
-        P1 = np.where(values < 0)
-        P2 = np.where(values > 0)
+        P1 = np.where(values < 0)[0]
+        P2 = np.where(values > 0)[0]
         return self.pointcloud[P1], self.pointcloud[P2]
 
     def split(self):
@@ -63,7 +63,7 @@ class RobustSurfaceSplitting():
             self.lineFitting = LineFitting(QPoints)
             self.line_params, error = self.lineFitting.get_lineparameters()
             print "error: ", error
-            self.p1, self.P2 = self.__splitPointCloud()
+            self.p1, self.p2 = self.__splitPointCloud()
             P1 = np.array(self.p1)
             P2 = np.array(self.p2)
             self.param_linear_surface, self.DLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
@@ -77,14 +77,20 @@ if __name__ == "__main__":
     front_curved_surface_ply = PlyData.read('./front-curved-surface/front-curved-surface.ply')
     left_linear_surface_points = np.hstack((left_linear_surface_ply['vertex']['x'].reshape(-1,1), left_linear_surface_ply['vertex']['y'].reshape(-1, 1), left_linear_surface_ply['vertex']['z'].reshape(-1, 1)))
     front_curved_surface_points = np.hstack((front_curved_surface_ply['vertex']['x'].reshape(-1,1), front_curved_surface_ply['vertex']['y'].reshape(-1,1), front_curved_surface_ply['vertex']['z'].reshape(-1,1)))
+    # cloud_points = pickle.load(open('./surface_split_parameter_files/cloud_points_pickle.txt', 'r'))
     cloud_points = np.vstack((left_linear_surface_points, front_curved_surface_points))
     robust_surface_splitting = RobustSurfaceSplitting(cloud_points, "./left-line1/line1-4.xyz")
     P1, P2, parameters_lin_surface, parameters_curved_surface, line_params = robust_surface_splitting.split()
+    print "Cloud Points shape: ", cloud_points.shape
+    print "P1 after split shape", P1.shape
+    print "P2 after split shape", P2.shape
+    cloud_points_pickle = open('./surface_split_parameter_files/cloud_points_pickle.txt', 'w')
     p1_pickle = open('./surface_split_parameter_files/p1_pickle.txt', 'w')
     p2_pickle = open('./surface_split_parameter_files/p2_pickle.txt', 'w')
     param_lin_surface_pickle = open('./surface_split_parameter_files/lin_surface_pickle.txt', 'w')
     parameters_curved_surface_pickle = open('./surface_split_parameter_files/curved_surface_pickle.txt', 'w')
     final_split_line_pickle = open('./surface_split_parameter_files/final_line_pickle.txt', 'w')
+    pickledump(cloud_points, cloud_points_pickle)
     pickledump(P1, p1_pickle)
     pickledump(P2, p2_pickle)
     pickledump(parameters_lin_surface, param_lin_surface_pickle)
