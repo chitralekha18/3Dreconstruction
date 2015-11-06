@@ -3,8 +3,8 @@ import numpy as np
 from line_fititng import LineFitting
 from RobustSurfaceFitting import LinSurfFit
 from RobustSurfaceFitting import QuadSurfFit
-from plyfile import PlyData
 from utils import *
+
 
 class RobustSurfaceSplitting():
     def __init__(self, point_cloud, initial_line_points_file):
@@ -19,12 +19,6 @@ class RobustSurfaceSplitting():
         print "initial error", initial_error
         self.Q = 50  # Q is the number of points close to the splitting line
         self.number_iterations = 2
-        self.p1, self.p2 = self.__splitPointCloud()
-        P1 = np.array(self.p1)
-        P2 = np.array(self.p2)
-        self.param_linear_surface, self.DLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
-        self.param_curved_surface, self.DQuadraticSurface = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
-
 
     def __splitPointCloud(self):
         """
@@ -38,7 +32,7 @@ class RobustSurfaceSplitting():
         values = np.array(values).ravel()
         P1 = np.where(values < 0)[0]
         P2 = np.where(values > 0)[0]
-        return self.pointcloud[P1], self.pointcloud[P2]
+        return P1, P2
 
     def split(self):
         # Step 1: Split the points in the points cloud into P1 and P2
@@ -46,15 +40,20 @@ class RobustSurfaceSplitting():
         # Step 3: Find the Distance D = | S1(x, y) - S2(x, y) |
         # Step 4: Find the subset of Points Q that have least distance
         # Step 5: Fit a line to this set of points. Repeat
-        for i in xrange(self.number_iterations-1):
-
+        for i in xrange(self.number_iterations):
+            self.p1_indices, self.p2_indices = self.__splitPointCloud()
+            self.p1, self.p2 = self.pointcloud[self.p1_indices], self.pointcloud[self.p2_indices]
+            P1 = np.array(self.p1)
+            P2 = np.array(self.p2)
+            self.param_linear_surface, self.DLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
+            self.param_curved_surface, self.DQuadraticSurface = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
             x = self.pointcloud[:, 0]
             y = self.pointcloud[:, 1]
             x2 = np.square(x)
             y2 = np.square(y)
             xy = np.multiply(x, y)
             ones = np.ones((x.shape[0], 1))
-            S1xy = np.hstack((x,y, ones)) * self.param_linear_surface
+            S1xy = np.hstack((x, y, ones)) * self.param_linear_surface
             S2xy = np.hstack((x2, y2, xy, x, y, ones)) * self.param_curved_surface
             D = np.abs(np.subtract(S1xy, S2xy))
             D = np.array(D).ravel()
@@ -62,39 +61,21 @@ class RobustSurfaceSplitting():
             QPoints = self.pointcloud[minimumQPoints]
             self.lineFitting = LineFitting(QPoints)
             self.line_params, error = self.lineFitting.get_lineparameters()
-            print "error: ", error
-            self.p1, self.p2 = self.__splitPointCloud()
-            P1 = np.array(self.p1)
-            P2 = np.array(self.p2)
-            self.param_linear_surface, self.DLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
-            self.param_curved_surface, self.DQuadraticSurface = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
-
-        return self.p1, self.p2, self.param_linear_surface, self.param_curved_surface, self.line_params
+            print "error after fitting again: ", error
+        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, self.DLinearSurface, self.DQuadraticSurface, self.line_params
 
 
 if __name__ == "__main__":
-    left_linear_surface_ply = PlyData.read('./left-linear-surface/left-linear-surface.ply')
-    front_curved_surface_ply = PlyData.read('./front-curved-surface/front-curved-surface.ply')
-    left_linear_surface_points = np.hstack((left_linear_surface_ply['vertex']['x'].reshape(-1,1), left_linear_surface_ply['vertex']['y'].reshape(-1, 1), left_linear_surface_ply['vertex']['z'].reshape(-1, 1)))
-    front_curved_surface_points = np.hstack((front_curved_surface_ply['vertex']['x'].reshape(-1,1), front_curved_surface_ply['vertex']['y'].reshape(-1,1), front_curved_surface_ply['vertex']['z'].reshape(-1,1)))
-    # cloud_points = pickle.load(open('./surface_split_parameter_files/cloud_points_pickle.txt', 'r'))
-    cloud_points = np.vstack((left_linear_surface_points, front_curved_surface_points))
-    robust_surface_splitting = RobustSurfaceSplitting(cloud_points, "./left-line1/line1-4.xyz")
-    P1, P2, parameters_lin_surface, parameters_curved_surface, line_params = robust_surface_splitting.split()
-    print "Cloud Points shape: ", cloud_points.shape
-    print "P1 after split shape", P1.shape
-    print "P2 after split shape", P2.shape
-    cloud_points_pickle = open('./surface_split_parameter_files/cloud_points_pickle.txt', 'w')
-    p1_pickle = open('./surface_split_parameter_files/p1_pickle.txt', 'w')
-    p2_pickle = open('./surface_split_parameter_files/p2_pickle.txt', 'w')
-    param_lin_surface_pickle = open('./surface_split_parameter_files/lin_surface_pickle.txt', 'w')
-    parameters_curved_surface_pickle = open('./surface_split_parameter_files/curved_surface_pickle.txt', 'w')
-    final_split_line_pickle = open('./surface_split_parameter_files/final_line_pickle.txt', 'w')
-    pickledump(cloud_points, cloud_points_pickle)
-    pickledump(P1, p1_pickle)
-    pickledump(P2, p2_pickle)
-    pickledump(parameters_lin_surface, param_lin_surface_pickle)
-    pickledump(parameters_curved_surface,parameters_curved_surface_pickle)
-    pickledump(line_params, final_split_line_pickle)
-
-
+    FRONT_LEFT_PICKLE = "./pickled_files/fl_surface.pkl"
+    LEFTLINE = "./left_line/left_line1.xyz"
+    FRONT_PLY = "./front_left_surface/front_surface.ply"
+    LEFT_PLY = "./front_left_surface/left_surface.ply"
+    front_left_surface = pickleload(FRONT_LEFT_PICKLE)
+    surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
+    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, DLinear, DCurved, line_params =surfaceSplitting.split()
+    left_surface = front_left_surface[p1_indices]
+    front_surface = front_left_surface[p2_indices]
+    # left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
+    # front_surface = get_new_surface(front_surface, DCurved, param_curved_surface)
+    write_ply_file(left_surface, LEFT_PLY)
+    write_ply_file(front_surface, FRONT_PLY)

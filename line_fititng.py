@@ -1,6 +1,7 @@
 __author__ = 'abhinavkashyap'
 import numpy as np
-# The xyz file contains the (x, y, z) of the line that is manually drawn between the center and the left images
+from plyfile import PlyData
+import matplotlib.pyplot as plt
 
 
 class LineFitting():
@@ -18,8 +19,8 @@ class LineFitting():
         """
         data=  self.data
         # Considering only the x and the y values
-        x = np.matrix(data[:, 0])
-        y = np.matrix(data[:, 1])
+        x = np.matrix(data[:, 0]).reshape(-1, 1)
+        y = np.matrix(data[:, 1]).reshape(-1,1)
         ones = np.matrix(np.ones((x.shape[0],1)))
         D = np.hstack((x, ones))
         return D, y
@@ -34,10 +35,19 @@ class LineFitting():
         return self.solveLinearFitting(D, y)
 
 if __name__ == "__main__":
-    #Choosing the line1-4 because that gives the minimal error
-    data = np.matrix(np.genfromtxt("./left-line1/line1-4.xyz"))
+
+    data = np.genfromtxt("./left_line/left_line1.xyz")
+    x = np.matrix(data[:, 0]).reshape(-1, 1)
+    y = np.matrix(data[:, 1]).reshape(-1, 1)
+    z = np.matrix(data[:, 2]).reshape(-1, 1)
     lineFitting = LineFitting(data)
-    print lineFitting.get_lineparameters()
+    params, error = lineFitting.get_lineparameters()
+    ones = np.matrix(np.ones((x.shape[0],1)))
+    new_y = np.hstack((x, ones)) * params
+    plt.scatter(x, y)
+    plt.plot(x, new_y)
+    plt.show()
+    np.savetxt("./left_line/left_line_new.xyz", np.hstack((x, new_y.reshape(-1,1), z)))
 
 
 

@@ -61,17 +61,17 @@ def LinSurfFit(x_orig, y_orig, z_orig):
         E = np.median(r)
         print 'At iter = ' + str(iter) + ' error E is = ' + str(E)
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(x, y, np.array(Z_linearFit).flatten(), cmap=cm.jet, linewidth=0.2)
-    ax.set_title('Final Estimate')
-    plt.draw()
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(x, y, np.array(v).flatten(), cmap=cm.jet, linewidth=0.2)
-    ax.set_title('Final Actual')
-    plt.draw()
-    plt.show()
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # ax.plot_trisurf(x, y, np.array(Z_linearFit).flatten(), cmap=cm.jet, linewidth=0.2)
+    # ax.set_title('Final Estimate')
+    # plt.draw()
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # ax.plot_trisurf(x, y, np.array(v).flatten(), cmap=cm.jet, linewidth=0.2)
+    # ax.set_title('Final Actual')
+    # plt.draw()
+    # plt.show()
     return a, D
 
 
@@ -128,17 +128,17 @@ def QuadSurfFit(x_orig, y_orig, z_orig):
         print 'At iter = ' + str(iter) + ' error E is = ' + str(E)
 
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(x, y, np.array(Z_quadFit).flatten(), cmap=cm.jet, linewidth=0.2)
-    ax.set_title('Final Estimate')
-    plt.draw()
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(x, y, np.array(v).flatten(), cmap=cm.jet, linewidth=0.2)
-    ax.set_title('Actual')
-    plt.draw()
-    plt.show()
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # ax.plot_trisurf(x, y, np.array(Z_quadFit).flatten(), cmap=cm.jet, linewidth=0.2)
+    # ax.set_title('Final Estimate')
+    # plt.draw()
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # ax.plot_trisurf(x, y, np.array(v).flatten(), cmap=cm.jet, linewidth=0.2)
+    # ax.set_title('Actual')
+    # plt.draw()
+    # plt.show()
 
     return a, D
 
