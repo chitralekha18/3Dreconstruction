@@ -4,7 +4,7 @@ from line_fititng import LineFitting
 from RobustSurfaceFitting import LinSurfFit
 from RobustSurfaceFitting import QuadSurfFit
 from utils import *
-
+import pdb
 
 class RobustSurfaceSplitting():
     def __init__(self, point_cloud, initial_line_points_file):
@@ -18,7 +18,7 @@ class RobustSurfaceSplitting():
         self.line_params, initial_error = self.lineFitting.get_lineparameters()  # [theta0, theta1] shape 2,1
         print "initial error", initial_error
         self.Q = 50  # Q is the number of points close to the splitting line
-        self.number_iterations = 2
+        self.number_iterations = 1
 
     def __splitPointCloud(self):
         """
@@ -45,8 +45,8 @@ class RobustSurfaceSplitting():
             self.p1, self.p2 = self.pointcloud[self.p1_indices], self.pointcloud[self.p2_indices]
             P1 = np.array(self.p1)
             P2 = np.array(self.p2)
-            self.param_linear_surface, self.DLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
-            self.param_curved_surface, self.DQuadraticSurface = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
+            self.param_linear_surface, self.DLinearSurface, self.indices_chosen_lin = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
+            self.param_curved_surface, self.DQuadraticSurface, self.indices_chosen_quad = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
             x = self.pointcloud[:, 0]
             y = self.pointcloud[:, 1]
             x2 = np.square(x)
@@ -62,7 +62,7 @@ class RobustSurfaceSplitting():
             self.lineFitting = LineFitting(QPoints)
             self.line_params, error = self.lineFitting.get_lineparameters()
             print "error after fitting again: ", error
-        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, self.DLinearSurface, self.DQuadraticSurface, self.line_params
+        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, self.indices_chosen_quad 
 
 
 if __name__ == "__main__":
@@ -72,10 +72,13 @@ if __name__ == "__main__":
     LEFT_PLY = "./front_left_surface/left_surface.ply"
     front_left_surface = pickleload(FRONT_LEFT_PICKLE)
     surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
-    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, DLinear, DCurved, line_params =surfaceSplitting.split()
-    left_surface = front_left_surface[p1_indices]
-    front_surface = front_left_surface[p2_indices]
-    # left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
-    # front_surface = get_new_surface(front_surface, DCurved, param_curved_surface)
+    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, DLinear, DCurved, line_params, indices_lin, indices_quad =surfaceSplitting.split()
+    #left_surface = front_left_surface[p1_indices]
+    #front_surface = front_left_surface[p2_indices]
+    left_surface = front_left_surface[p1_indices[indices_lin]]
+    front_surface = front_left_surface[p2_indices[indices_quad]]
+    
+    left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
+    front_surface = get_new_surface(front_surface, DCurved, param_curved_surface)
     write_ply_file(left_surface, LEFT_PLY)
     write_ply_file(front_surface, FRONT_PLY)

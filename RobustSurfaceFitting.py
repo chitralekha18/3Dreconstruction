@@ -29,6 +29,7 @@ def LinSurfFit(x_orig, y_orig, z_orig):
     D[:, 2] = np.matrix(np.ones([n, 1]))
 
     v = np.matrix(z).T
+    indices_chosen = np.array(range(len(x)))
 
     # Solve for least square solution
     a, e, r, s = la.lstsq(D, v)
@@ -40,7 +41,7 @@ def LinSurfFit(x_orig, y_orig, z_orig):
     # ax = fig.add_subplot(3, 1, 1, projection='3d')
     r = np.array(v - Z_linearFit) * np.array(v - Z_linearFit)
     E = np.median(r)
-
+    
     iter = 0
     while E > tau_s:
         iter = iter + 1
@@ -53,7 +54,9 @@ def LinSurfFit(x_orig, y_orig, z_orig):
         D[:, 0] = np.matrix(x).T
         D[:, 1] = np.matrix(y).T
         D[:, 2] = np.matrix(np.ones([n, 1]))
-
+        
+        indices_chosen = indices_chosen[np.array((r < E).T).ravel()]
+        
         # Solve for least square solution
         a, e, r, s = la.lstsq(D, v)
         Z_linearFit = D * a
@@ -72,7 +75,7 @@ def LinSurfFit(x_orig, y_orig, z_orig):
     # ax.set_title('Final Actual')
     # plt.draw()
     # plt.show()
-    return a, D
+    return a, D, indices_chosen
 
 
 def QuadSurfFit(x_orig, y_orig, z_orig):
@@ -91,6 +94,7 @@ def QuadSurfFit(x_orig, y_orig, z_orig):
     D[:, 5] = np.matrix(np.ones([n, 1]))
 
     v = np.matrix(z).T
+    indices_chosen = np.array(range(len(x)))
 
     # Solve for least square solution
     a, e, r, s = la.lstsq(D, v)
@@ -120,6 +124,8 @@ def QuadSurfFit(x_orig, y_orig, z_orig):
         D[:, 4] = np.matrix(y).T
         D[:, 5] = np.matrix(np.ones([n, 1]))
 
+        indices_chosen = indices_chosen[np.array((r < E).T).ravel()]
+        
         # Solve for least square solution
         a, e, r, s = la.lstsq(D, v)
         Z_quadFit = D * a
@@ -140,7 +146,7 @@ def QuadSurfFit(x_orig, y_orig, z_orig):
     # plt.draw()
     # plt.show()
 
-    return a, D
+    return a, D, indices_chosen
 
 
 def main(x, y, z, ftype):
