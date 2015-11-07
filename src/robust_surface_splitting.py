@@ -44,8 +44,11 @@ class RobustSurfaceSplitting():
             self.p1, self.p2 = self.pointcloud[self.p1_indices], self.pointcloud[self.p2_indices]
             P1 = np.array(self.p1)
             P2 = np.array(self.p2)
-            self.param_linear_surface, self.DLinearSurface, self.indices_chosen_lin = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
-            self.param_curved_surface, self.DQuadraticSurface, self.indices_chosen_quad = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
+            self.param_linear_surface, self.DLinearSurface, self.indices_chosen_lin = LinSurfFit(P1[:, 0], P1[:, 1],
+                                                                                                 P1[:, 2])
+            self.param_curved_surface, self.DQuadraticSurface, self.indices_chosen_quad = QuadSurfFit(P2[:, 0],
+                                                                                                      P2[:, 1],
+                                                                                                      P2[:, 2])
             x = self.pointcloud[:, 0]
             y = self.pointcloud[:, 1]
             x2 = np.square(x)
@@ -61,17 +64,25 @@ class RobustSurfaceSplitting():
             self.lineFitting = LineFitting(QPoints)
             self.line_params, error = self.lineFitting.get_lineparameters()
             print "error after fitting again: ", error
-        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, self.indices_chosen_quad 
+        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, \
+               self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, \
+               self.indices_chosen_quad, QPoints
+
 
 def robust_splitting_main(front, left):
     FRONT_LEFT_PICKLE = "./pickled_files/fl_surface.pkl"
     LEFTLINE = "./left_line/left_line1.xyz"
     front_left_surface = pickleload(FRONT_LEFT_PICKLE)
     surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
-    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, DLinear, DCurved, line_params, indices_lin, indices_quad =surfaceSplitting.split()
-    #left_surface = front_left_surface[p1_indices]
-    #front_surface = front_left_surface[p2_indices]
+    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, \
+    DLinear, DCurved, \
+    line_params, indices_lin, indices_quad, QPoints = surfaceSplitting.split()
+    # left_surface = front_left_surface[p1_indices]
+    # front_surface = front_left_surface[p2_indices]
+
+
     left_surface = front_left_surface[p1_indices[indices_lin]]
+
     front_surface = front_left_surface[p2_indices[indices_quad]]
 
     left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
