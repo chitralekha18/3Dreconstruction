@@ -1,10 +1,10 @@
 import numpy as np
-from plyfile import PlyData, PlyElement
-from mpl_toolkits.mplot3d import Axes3D
+from plyfile import PlyData
 import matplotlib.pyplot as plt
-from RobustSurfaceFitting import QuadSurfFit
-from RobustSurfaceFitting import LinSurfFit
 from sklearn.neighbors import NearestNeighbors
+
+from src.RobustSurfaceFitting import QuadSurfFit
+from src.RobustSurfaceFitting import LinSurfFit
 
 
 class Resampling(object):
@@ -176,8 +176,8 @@ class PLYLoader(object):
 
 
 if __name__ == "__main__":
-    PLY_FILENAME = '../front_left_surface/front_surface.ply'
-    PLY_PlaneFile = '../front_left_surface/left_surface.ply'
+    PLY_FILENAME = './front_left_surface/front_surface.ply'
+    PLY_PlaneFile = './front_left_surface/left_surface.ply'
 
     plyloader = PLYLoader(PLY_FILENAME)
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     resamp_obj = Resampling(point_cloud, color_matrix)
 
     resamp_obj.do_resampling()
-    resamp_obj.write_pointsPLY('./front_surface_resampled.ply')
+    resamp_obj.write_pointsPLY('./output/front_surface_resampled.ply')
     # resamp_obj.plot_3D(resamp_obj.uniform_pointcloud)
 
     # Now Construct Planer Surface
@@ -200,4 +200,4 @@ if __name__ == "__main__":
     color_matrix = plyloader.get_colors()
     resamp_obj = Resampling(point_cloud, color_matrix)
     resamp_obj.do_resampling(fitplane=1)
-    resamp_obj.write_pointsPLY('./left_surface_resampled.ply')
+    resamp_obj.write_pointsPLY('./output/left_surface_resampled.ply')

@@ -1,10 +1,9 @@
 __author__ = 'abhinavkashyap'
-import numpy as np
-from line_fititng import LineFitting
+from src.line_fititng import LineFitting
 from RobustSurfaceFitting import LinSurfFit
 from RobustSurfaceFitting import QuadSurfFit
 from utils import *
-import pdb
+
 
 class RobustSurfaceSplitting():
     def __init__(self, point_cloud, initial_line_points_file):

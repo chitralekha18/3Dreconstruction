@@ -90,5 +90,5 @@ if __name__ == "__main__":
 	parameters_lin_surface = pickle.load( open( "./surface_split_parameter_files/lin_surface_pickle.txt", "rb" ) )
 	parameters_curved_surface = pickle.load( open( "./surface_split_parameter_files/curved_surface_pickle.txt", "rb" ) )
 	
-	CreatePLY(P1,parameters_lin_surface,'surf1.ply','lin','example-1.ply')
-	CreatePLY(P2,parameters_curved_surface,'surf2.ply','quad','example-1.ply')
+	CreatePLY(P1,parameters_lin_surface,'surf1.ply','lin','./input/example-1.ply')
+	CreatePLY(P2,parameters_curved_surface,'surf2.ply','quad','./input/example-1.ply')
