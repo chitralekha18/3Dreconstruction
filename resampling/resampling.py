@@ -98,11 +98,13 @@ end_header
         3. Do linear interpolation for the point based on 4 nearest neighbour (although the paper instructs otherwise)
         '''
         if fitplane:
-            param, points_without_outliers = LinSurfFit(self.point_cloud[0, :], self.point_cloud[1, :], self.point_cloud[2, :])
+            param, points_without_outliers, _ = LinSurfFit(self.point_cloud[0, :], self.point_cloud[1, :],
+                                                           self.point_cloud[2, :])
             x =  points_without_outliers[:,0]
             y = points_without_outliers[:,1]
         else:
-            param, points_without_outliers = QuadSurfFit(self.point_cloud[0, :], self.point_cloud[1, :], self.point_cloud[2, :])
+            param, points_without_outliers, _ = QuadSurfFit(self.point_cloud[0, :], self.point_cloud[1, :],
+                                                            self.point_cloud[2, :])
             x =  points_without_outliers[:,3]
             y = points_without_outliers[:,4]
        
@@ -170,8 +172,8 @@ class PLYLoader(object):
         return np.vstack((normal_x,normal_y,normal_z))
         
 if __name__ == "__main__":
-        PLY_FILENAME = "./front-curved-surface/front-curved-surface.ply"
-        PLY_PlaneFile = './left-linear-surface/left-linear-surface.ply'
+    PLY_FILENAME = '../front_left_surface/front_surface.ply'
+    PLY_PlaneFile = '../front_left_surface/left_surface.ply'
         
         plyloader = PLYLoader(PLY_FILENAME)
         
@@ -185,7 +187,7 @@ if __name__ == "__main__":
         resamp_obj = Resampling(point_cloud,color_matrix)
 
         resamp_obj.do_resampling()
-        resamp_obj.write_pointsPLY('frontcurvedsurface_output.ply')
+    resamp_obj.write_pointsPLY('./front_surface_resampled.ply')
         #resamp_obj.plot_3D(resamp_obj.uniform_pointcloud)
         
         #Now Construct Planer Surface
@@ -194,4 +196,4 @@ if __name__ == "__main__":
         color_matrix = plyloader.get_colors()
         resamp_obj = Resampling(point_cloud,color_matrix)
         resamp_obj.do_resampling(fitplane=1)
-        resamp_obj.write_pointsPLY('leftlinearsurface_output.ply')
+    resamp_obj.write_pointsPLY('./left_surface_resampled.ply')
