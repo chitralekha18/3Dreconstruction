@@ -2,11 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="71545c59-70ea-456f-9941-5d488fd2ba59" name="Default" comment="minor">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resampling/front_surface_resampled.ply" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/resampling/left_surface_resampled.ply" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/front_left_surface/front_surface.ply" afterPath="$PROJECT_DIR$/front_left_surface/front_surface.ply" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/front_left_surface/left_surface.ply" afterPath="$PROJECT_DIR$/front_left_surface/left_surface.ply" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resampling/resampling.py" afterPath="$PROJECT_DIR$/resampling/resampling.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="3Dreconstruction.iws" />
@@ -42,7 +37,7 @@
               <caret line="100" column="46" selection-start-line="100" selection-start-column="46" selection-end-line="100" selection-end-column="46" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <element signature="e#5726#5763#0" expanded="false" />
+                <element signature="e#5844#5881#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -610,7 +605,13 @@
       <option name="project" value="LOCAL" />
       <updated>1446885749831</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="minor">
+      <created>1446890291439</created>
+      <option name="number" value="00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1446890291439</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -829,7 +830,7 @@
           <caret line="100" column="46" selection-start-line="100" selection-start-column="46" selection-end-line="100" selection-end-column="46" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#5726#5763#0" expanded="false" />
+            <element signature="e#5844#5881#0" expanded="false" />
           </folding>
         </state>
       </provider>
