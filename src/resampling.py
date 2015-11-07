@@ -175,11 +175,11 @@ class PLYLoader(object):
         return np.vstack((normal_x, normal_y, normal_z))
 
 
-if __name__ == "__main__":
+def resampling_main(front, left, out_path):
     PLY_FILENAME = './front_left_surface/front_surface.ply'
     PLY_PlaneFile = './front_left_surface/left_surface.ply'
 
-    plyloader = PLYLoader(PLY_FILENAME)
+    plyloader = PLYLoader(front)
 
     point_cloud = plyloader.get_points()  # Filling in with values, i follow column major order [ 3Dpoint1 3Dpoint2 3Dpoint3 ... ]
 
@@ -191,13 +191,20 @@ if __name__ == "__main__":
     resamp_obj = Resampling(point_cloud, color_matrix)
 
     resamp_obj.do_resampling()
-    resamp_obj.write_pointsPLY('./output/front_surface_resampled.ply')
+    resamp_obj.write_pointsPLY(out_path + 'front_surface_resampled.ply')
     # resamp_obj.plot_3D(resamp_obj.uniform_pointcloud)
 
     # Now Construct Planer Surface
-    plyloader = PLYLoader(PLY_PlaneFile)
+    plyloader = PLYLoader(left)
     point_cloud = plyloader.get_points()
     color_matrix = plyloader.get_colors()
     resamp_obj = Resampling(point_cloud, color_matrix)
     resamp_obj.do_resampling(fitplane=1)
-    resamp_obj.write_pointsPLY('./output/left_surface_resampled.ply')
+    resamp_obj.write_pointsPLY(out_path + 'left_surface_resampled.ply')
+
+if __name__ == "__main__":
+    path_to_front_surface = './front_left_surface/front_surface.ply'
+    path_to_left_surface = './front_left_surface/left_surface.ply'
+    path_to_output = "./output/"
+    resampling_main(path_to_front_surface, path_to_left_surface, path_to_output)
+

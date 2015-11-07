@@ -63,12 +63,9 @@ class RobustSurfaceSplitting():
             print "error after fitting again: ", error
         return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, self.indices_chosen_quad 
 
-
-if __name__ == "__main__":
+def robust_splitting_main(front, left):
     FRONT_LEFT_PICKLE = "./pickled_files/fl_surface.pkl"
     LEFTLINE = "./left_line/left_line1.xyz"
-    FRONT_PLY = "./front_left_surface/front_surface.ply"
-    LEFT_PLY = "./front_left_surface/left_surface.ply"
     front_left_surface = pickleload(FRONT_LEFT_PICKLE)
     surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
     p1_indices, p2_indices, param_line_surfaces, param_curved_surface, DLinear, DCurved, line_params, indices_lin, indices_quad =surfaceSplitting.split()
@@ -76,8 +73,14 @@ if __name__ == "__main__":
     #front_surface = front_left_surface[p2_indices]
     left_surface = front_left_surface[p1_indices[indices_lin]]
     front_surface = front_left_surface[p2_indices[indices_quad]]
-    
+
     left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
     front_surface = get_new_surface(front_surface, DCurved, param_curved_surface)
-    write_ply_file(left_surface, LEFT_PLY)
-    write_ply_file(front_surface, FRONT_PLY)
+    write_ply_file(left_surface, left)
+    write_ply_file(front_surface, front)
+
+
+if __name__ == "__main__":
+    front_ply_path = "./front_left_surface/front_surface.ply"
+    left_ply_path = "./front_left_surface/left_surface.ply"
+    robust_splitting_main(front_ply_path, left_ply_path)
