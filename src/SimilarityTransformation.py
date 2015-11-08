@@ -33,7 +33,7 @@ def calculate_transform(QPoints, linear_params, quadratic_params):
     X_2[:, 0:2] = inputs
     X_2[:, 2:3] = quadratic_surface_z
     s, R, T = __CalculateTransformation(X_1.T, X_2.T)
-
+    # print R
     # print X_1 - (s  * np.dot(X_1, R.T) + T.T )
     # if each point is presented by a row, the formula will be x_2 = s * x_1 * R.T + T.T
     return s, R, T
@@ -61,15 +61,18 @@ def __CalculateTransformation(X_1, X_2):
     r_1_square = r_1 * r_1
     r_2_square = r_2 * r_2
 
+
     # sum of norms of r_1i is just the sum of all elements of r_1_square
-    s = math.sqrt(np.sum(r_1_square) / math.sqrt(np.sum(r_2_square)))
+    s = math.sqrt(np.sum(r_1_square)) / math.sqrt(np.sum(r_2_square))
     M = np.dot(r_2, r_1.T)
+
     Q = np.dot(M.T, M)
     w, V = np.linalg.eig(Q)
     egiens = np.diag(w)
 
     # 1 / sqrt(lambda_i)
     modified_eigens = np.linalg.inv(np.sqrt(egiens))
+
 
     # Q ^(-.05)
     Q_1 = np.dot(np.dot(V, modified_eigens), V.T)
