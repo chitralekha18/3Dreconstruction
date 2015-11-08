@@ -1,3 +1,5 @@
+from src.SimilarityTransformation import calculate_transform, transform_surface
+
 __author__ = 'abhinavkashyap'
 from src.line_fititng import LineFitting
 from RobustSurfaceFitting import LinSurfFit
@@ -66,7 +68,7 @@ class RobustSurfaceSplitting():
             print "error after fitting again: ", error
         return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, \
                self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, \
-               self.indices_chosen_quad, QPoints
+               self.indices_chosen_quad, QPoints, minimumQPoints
 
 
 def robust_splitting_main(front, left):
@@ -76,17 +78,24 @@ def robust_splitting_main(front, left):
     surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
     p1_indices, p2_indices, param_line_surfaces, param_curved_surface, \
     DLinear, DCurved, \
-    line_params, indices_lin, indices_quad, QPoints = surfaceSplitting.split()
+    line_params, indices_lin, indices_quad, QPoints, indexes_of_QPoints = surfaceSplitting.split()
     # left_surface = front_left_surface[p1_indices]
     # front_surface = front_left_surface[p2_indices]
 
 
     left_surface = front_left_surface[p1_indices[indices_lin]]
-
     front_surface = front_left_surface[p2_indices[indices_quad]]
 
+    s, R, T = calculate_transform(QPoints, param_line_surfaces, param_curved_surface)
+    # the formula will be x_2 = s * x_1 * R + T
+    # see comment in the method
+
     left_surface = get_new_surface(left_surface, DLinear, param_line_surfaces)
+    transformed_surface = transform_surface(left_surface, s, R.T, T.T)
+    left_surface[:, 0:3] = transformed_surface
+
     front_surface = get_new_surface(front_surface, DCurved, param_curved_surface)
+
     write_ply_file(left_surface, left)
     write_ply_file(front_surface, front)
 

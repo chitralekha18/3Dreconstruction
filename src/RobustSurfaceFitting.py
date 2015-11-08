@@ -1,12 +1,6 @@
 import numpy as np
 import numpy.linalg as la
-import pdb
-import plyfile
-from plyfile import PlyData, PlyElement
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import sys, getopt
+from plyfile import PlyData
 
 
 def LinSurfFit(x_orig, y_orig, z_orig):
