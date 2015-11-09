@@ -10,7 +10,7 @@ def LinSurfFit(x_orig, y_orig, z_orig):
 
 
     # Robust Fitting (Linear)
-    tau_s = 5E-7
+    tau_s = 5E-2 #5E-7
     print 'tau_s = ' + str(tau_s)
     x = x_orig
     y = y_orig
@@ -97,7 +97,7 @@ def QuadSurfFit(x_orig, y_orig, z_orig):
     Z_quadFit = D * a
 
     # Robust Fitting (Quadratic)
-    tau_s = 5E-7
+    tau_s = 5E-2
     print 'tau_s = ' + str(tau_s)
     r = np.array(v - Z_quadFit) * np.array(v - Z_quadFit)
     E = np.median(r)
