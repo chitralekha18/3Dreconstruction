@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import pdb
 
 __author__ = 'Dmitrii'
 
@@ -32,11 +33,14 @@ def calculate_transform(QPoints, linear_params, quadratic_params):
     X_2 = np.empty((n, 3))
     X_2[:, 0:2] = inputs
     X_2[:, 2:3] = quadratic_surface_z
+
     s, R, T = __CalculateTransformation(X_1.T, X_2.T)
     # print R
     # print X_1 - (s  * np.dot(X_1, R.T) + T.T )
     # if each point is presented by a row, the formula will be x_2 = s * x_1 * R.T + T.T
-    return s, R, T
+    X_2new = s*np.dot(R,X_1.T) + T
+    Qnew = np.hstack((X_2new.T,QPoints[:,3:10]))
+    return s, R, T, Qnew
 
 
 def transform_surface(surface, s, R, T):
@@ -82,6 +86,6 @@ def __CalculateTransformation(X_1, X_2):
 
 
 ### test to check that it doesn't produce any errors
-X_1 = np.asarray([[4.0, 2.0, 3.0], [8.0, 3.1, 4.0]]).T
-X_2 = np.asarray([[2.0, 3.0, 6.0], [3.0, 5.0, 2.0]]).T
-__CalculateTransformation(X_1, X_2)
+# X_1 = np.asarray([[4.0, 2.0, 3.0], [8.0, 3.1, 4.0]]).T
+# X_2 = np.asarray([[2.0, 3.0, 6.0], [3.0, 5.0, 2.0]]).T
+# __CalculateTransformation(X_1, X_2)
