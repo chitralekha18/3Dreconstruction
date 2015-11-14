@@ -45,7 +45,7 @@ def pickleload(filename):
 
 
 def pickle_front_left_surface(filename):
-    pickle_file = open("./pickled_files/fl_surface.pkl", "w")
+    pickle_file = open("../pickled_files/fl_surface.pkl", "w")
     fl_file = open(filename)
     plydata = PlyData.read(fl_file)
     plyarray = get_ply_array(plydata)
@@ -93,6 +93,6 @@ end_header
                    str(nz) + " " + str(red) + " " + str(green) + " " + str(blue) + " " + str(alpha) + "\n")
     file.close()
 if __name__ == "__main__":
-    pickle_front_left_surface("./front_left_surface/fl_surface.ply")
+    pickle_front_left_surface("../front_left_surface/fl_surface.ply")
 
 
