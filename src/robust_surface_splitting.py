@@ -19,8 +19,7 @@ class RobustSurfaceSplitting():
         self.line_params, initial_error = self.lineFitting.get_lineparameters()  # [theta0, theta1] shape 2,1
         print "initial error", initial_error
         self.Q = 50  # Q is the number of points close to the splitting line
-        self.number_iterations = 2
-
+        self.number_iterations = 1
     def __splitPointCloud(self):
         """
             the point cloud is split into two according to the sign of l(X)
@@ -44,46 +43,26 @@ class RobustSurfaceSplitting():
         for i in xrange(self.number_iterations):
             self.p1_indices, self.p2_indices = self.__splitPointCloud()
             self.p1, self.p2 = self.pointcloud[self.p1_indices], self.pointcloud[self.p2_indices]
+
+            #Fit new surfaces to the line
             P1 = np.array(self.p1)
             P2 = np.array(self.p2)
-            self.param_linear_surface, self.DLinearSurface, self.indices_chosen_lin = LinSurfFit(P1[:, 0], P1[:, 1],
-                                                                                                 P1[:, 2])
-            self.param_curved_surface, self.DQuadraticSurface, self.indices_chosen_quad = QuadSurfFit(P2[:, 0],
-                                                                                                   P2[:, 1],
-                                                                                                      P2[:, 2])
-            p1 = np.hstack((self.p1[:,0:2], np.ones((self.p1.shape[0],1))))
-            p2 = np.hstack((self.p2[:,0:2], np.ones((self.p2.shape[0],1))))
-            distance1 = self.distance_to_line(p1, self.line_params)
-            distance2 = self.distance_to_line(p2, self.line_params)
-            q1 = np.argsort(np.array(distance1).ravel())[:50]
-            q2 = np.argsort(np.array(distance2).ravel())[:50]
-            nearest1 = self.p1[q1]
-            nearest2 = self.p2[q2]
-            minimumQPoints = np.vstack((nearest1, nearest2))
-            self.lineFitting = LineFitting(minimumQPoints)
-            self.line_params, errors = self.lineFitting.get_lineparameters()  # [theta0, theta1] shape 2,1
+            self.linearSurfaceParameters, self.DLinearSurface, self.indicesLinearSurface = LinSurfFit(P1[:, 0], P1[:, 1], P1[:, 2])
+            chosenPointsLinear = self.p1[self.indicesLinearSurface]
+            chosenPointsLinear = get_new_surface(chosenPointsLinear, self.DLinearSurface, self.linearSurfaceParameters)
+            self.quadraticSurfaceParameters, self.DQuadratic, self.indicesQuadraticSurface = QuadSurfFit(P2[:, 0], P2[:, 1], P2[:, 2])
+            chosenPointsQuadratic = self.p2[self.indicesQuadraticSurface]
+            chosenPointsQuadratic = get_new_surface(chosenPointsQuadratic, self.DQuadratic, self.quadraticSurfaceParameters)
+            write_ply_file(chosenPointsLinear, "../plyfiles/iteration"+str(i+1)+"LinearSurface.ply")
+            write_ply_file(chosenPointsQuadratic, "../plyfiles/iteration"+str(i+1)+"QuadraticSurface.ply")
+            write_ply_file(chosenPointsLinear, "../front_left_surface/left_surface.ply")
+            write_ply_file(chosenPointsQuadratic, "../front_left_surface/front_surface.ply")
 
-        return self.p1_indices, self.p2_indices, self.param_linear_surface, self.param_curved_surface, \
-               self.DLinearSurface, self.DQuadraticSurface, self.line_params, self.indices_chosen_lin, \
-               self.indices_chosen_quad, q1, q2, minimumQPoints
+            self.pointcloud = np.vstack((chosenPointsLinear, chosenPointsQuadratic))
+            write_ply_file(self.pointcloud, "../plyfiles/iteration"+str(i+1)+"newpointcloud.ply")
 
 
-    def distance_to_line(self, points, line_params):
-        """
 
-        :param points: the points for which the distance to the line has to be found
-        :param line_params: parameters of the line m and c
-        :return:
-        """
-        m = line_params.item(0, 0)
-        c = line_params.item(1, 0)
-        a = m
-        b = 1
-        c = -c
-        denominator = np.sqrt(a**2 + b**2)
-        parameters = np.matrix([[a, b, c]]).reshape(3,1)
-        distance = points * parameters
-        return distance / denominator
 
 
 def robust_splitting_main(front, left):
@@ -91,33 +70,11 @@ def robust_splitting_main(front, left):
     LEFTLINE = "../left_line/left_line1.xyz"
     front_left_surface = pickleload(FRONT_LEFT_PICKLE)
     surfaceSplitting = RobustSurfaceSplitting(front_left_surface, LEFTLINE)
-    p1_indices, p2_indices, param_line_surfaces, param_curved_surface, \
-    DLinear, DCurved, \
-    p1Indices, p2Indices, paramLinearSurface, paramCurvedSurface,DLinearSurface, DQuadraticSurface, lineParams, \
-    LinearSurfaceIndicesChosen, QuadraticSurfaceIndicesChosen,\
-    closesePointIndicesLinearSurfacem, closestPointIndicesCurvedSurface, minimumQPoints=surfaceSplitting.split()
+    surfaceSplitting.split()
 
-    pickledump(lineParams, open("../pickled_files/lineParams.pkl", "w"))
-
-    left_surface = front_left_surface[p1_indices[LinearSurfaceIndicesChosen]]
-    front_surface = front_left_surface[p2_indices[QuadraticSurfaceIndicesChosen]]
-
-    s, R, T = calculate_transform(minimumQPoints, paramLinearSurface, paramCurvedSurface)
-    # the formula will be x_2 = s * x_1 * R + T
-    # see comment in the method
-
-    left_surface = get_new_surface(left_surface, DLinear, paramLinearSurface)
-    transformed_surface = transform_surface(left_surface, s, R.T, T.T)
-    left_surface[:, 0:3] = transformed_surface
-
-    front_surface = get_new_surface(front_surface, DCurved, paramCurvedSurface)
-    front_surface = get_new_surface(front_surface, DCurved, paramCurvedSurface)
-
-    write_ply_file(left_surface, left)
-    write_ply_file(front_surface, front)
 
 
 if __name__ == "__main__":
-    front_ply_path = "./front_left_surface/front_surface.ply"
-    left_ply_path = "./front_left_surface/left_surface.ply"
+    front_ply_path = "../front_left_surface/front_surface.ply"
+    left_ply_path = "../front_left_surface/left_surface.ply"
     robust_splitting_main(front_ply_path, left_ply_path)

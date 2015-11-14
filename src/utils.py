@@ -28,8 +28,13 @@ def get_new_surface(pointcloud, designmatrix, params):
     """
     new_z = designmatrix * params
     pointcloud[:, 2] = new_z
+    # pointcloud[:, 2] = np.zeros((pointcloud.shape[0], 1))
     return pointcloud
 
+def get_new_line(pointcloud, designmatrix, params):
+    new_y = designmatrix * params;
+    pointcloud[:, 1] = new_y
+    return pointcloud
 
 def pickledump(obj, file):
     """
